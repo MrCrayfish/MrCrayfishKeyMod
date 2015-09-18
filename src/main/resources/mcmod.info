@@ -1,0 +1,12 @@
+[
+{
+  "modid": "ckm",
+  "name": "MrCrayfish's Key Mod",
+  "description": "A simple mod to utilize Minecraft's lock system.",
+  "version": "1.0",
+  "mcversion": "1.8",
+  "url": "http://www.mrcrayfish.com/",
+  "updateUrl": "http://www.mrcrayfish.com/mmods.php",
+  "authorList": ["MrCrayfish"]
+}
+]

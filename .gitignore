@@ -1,0 +1,17 @@
+.classpath
+.gradle*
+.project
+.settings*
+bin*
+build.gradle
+build*
+CREDITS-fml.txt
+eclipse*
+forge*
+gradle/
+run/
+README.txt
+*.txt
+*.launch
+gradlew
+*.bat
