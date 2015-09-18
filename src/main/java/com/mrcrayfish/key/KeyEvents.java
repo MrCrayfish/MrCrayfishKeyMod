@@ -50,10 +50,8 @@ public class KeyEvents
 				ItemStack current = player.getCurrentEquippedItem();
 				if(tileEntityLockable.isLocked())
 				{	
-					System.out.println("Chest is locked");
 					if(current != null && current.getItem() == KeyItems.item_key)
 					{
-						System.out.println("Is holding item");
 						if(!tileEntityLockable.getLockCode().getLock().equals(current.getDisplayName()))
 						{
 							world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
@@ -70,20 +68,16 @@ public class KeyEvents
 				}
 				else
 				{
-					System.out.println("Chest is not locked");
 					if(current != null && current.getItem() == KeyItems.item_key)
 					{
-						System.out.println("Is holding key");
 						if(!current.getDisplayName().equals(StatCollector.translateToLocal(current.getItem().getUnlocalizedName() +".name")))
 						{
-							System.out.println("Setting lock");
 							tileEntityLockable.setLockCode(new LockCode(current.getDisplayName()));
 							world.playSoundAtEntity(player, "random.click", 1.0F, 1.0F);
 							player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.GREEN + "Successfully locked the block with the key: " + EnumChatFormatting.RESET + current.getDisplayName())), (byte)2));
 						}
 						else
 						{
-							System.out.println("Default key");
 							player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "The key needs to be renamed before you can lock this block.")), (byte)2));
 						}
 						event.setCanceled(true);
