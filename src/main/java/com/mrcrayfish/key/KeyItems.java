@@ -11,7 +11,7 @@ public class KeyItems {
 	
 	public static void register()
 	{
-		item_key = new Item().setUnlocalizedName("item_key").setCreativeTab(MrCrayfishKeyMod.tabKey);
+		item_key = new ItemKey().setUnlocalizedName("item_key").setCreativeTab(MrCrayfishKeyMod.tabKey);
 	}
 	
 	public static void registerItems()
