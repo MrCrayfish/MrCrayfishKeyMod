@@ -154,6 +154,8 @@ public class KeyEvents
 			return;
 		
 		EntityPlayerMP player = (EntityPlayerMP) event.getPlayer();
+		World world = event.world;
+		BlockPos pos = event.pos;
 		
 		TileEntity tileEntity = event.world.getTileEntity(event.pos);
 		if(tileEntity instanceof TileEntityLockable)
@@ -168,10 +170,16 @@ public class KeyEvents
 				}
 			}
 		} 
-		else if(event.world.getBlockState(event.pos).getBlock() instanceof BlockDoor && event.world.getBlockState(event.pos).getBlock() != Blocks.iron_door)
+		else if(world.getBlockState(pos).getBlock() instanceof BlockDoor && world.getBlockState(pos).getBlock() != Blocks.iron_door)
 		{
-			LockedDoorData lockedDoorData = LockedDoorData.get(event.world);
-			LockedDoor lockedDoor = lockedDoorData.getDoor(event.pos);
+			BlockDoor blockDoor = (BlockDoor) world.getBlockState(pos).getBlock();
+			IBlockState state = world.getBlockState(pos);
+			if(((BlockDoor.EnumDoorHalf)state.getValue(BlockDoor.HALF)) == BlockDoor.EnumDoorHalf.UPPER)
+			{
+				pos = pos.down();
+			}
+			LockedDoorData lockedDoorData = LockedDoorData.get(world);
+			LockedDoor lockedDoor = lockedDoorData.getDoor(pos);
 			ItemStack current = player.getCurrentEquippedItem();
 
 			if(lockedDoor != null && lockedDoor.isLocked())
