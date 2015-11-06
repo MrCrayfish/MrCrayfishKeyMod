@@ -1,7 +1,10 @@
 package com.mrcrayfish.key;
 
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S02PacketChat;
@@ -11,8 +14,10 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldSavedData;
 
 public class ItemKey extends Item 
 {
@@ -23,10 +28,10 @@ public class ItemKey extends Item
 		{
 			if(playerIn.isSneaking())
 			{
+				EntityPlayerMP playerMp = (EntityPlayerMP) playerIn;
 				TileEntity tileEntity = worldIn.getTileEntity(pos);
 				if(tileEntity instanceof TileEntityLockable)
 				{
-					EntityPlayerMP playerMp = (EntityPlayerMP) playerIn;
 					TileEntityLockable tileEntityLockable = (TileEntityLockable) tileEntity;
 					if(tileEntityLockable.isLocked())
 					{	
@@ -38,6 +43,34 @@ public class ItemKey extends Item
 						else
 						{
 							playerMp.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "You need to have correct key to unlock this block.")), (byte)2));
+						}
+					}
+				}
+				else if(worldIn.getBlockState(pos).getBlock() instanceof BlockDoor && worldIn.getBlockState(pos).getBlock() != Blocks.iron_door)
+				{
+					BlockDoor blockDoor = (BlockDoor) worldIn.getBlockState(pos).getBlock();
+					IBlockState state = worldIn.getBlockState(pos);
+					if(((BlockDoor.EnumDoorHalf)state.getValue(BlockDoor.HALF)) == BlockDoor.EnumDoorHalf.UPPER)
+					{
+						pos = pos.down();
+					}
+					
+					LockedDoorData lockedDoorData = LockedDoorData.get(worldIn);
+					LockedDoor lockedDoor = lockedDoorData.getDoor(pos);
+					if(lockedDoor != null)
+					{
+						if(lockedDoor.isLocked())
+						{
+							if(lockedDoor.getLockCode().getLock().equals(stack.getDisplayName()))
+							{
+								lockedDoor.setLockCode(LockCode.EMPTY_CODE);
+								playerMp.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.GREEN + "Succesfully unlocked this block.")), (byte)2));
+								lockedDoorData.markDirty();
+							}
+							else
+							{
+								playerMp.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "You need to have correct key to unlock this block.")), (byte)2));
+							}
 						}
 					}
 				}

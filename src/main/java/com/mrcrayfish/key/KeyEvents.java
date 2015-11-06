@@ -1,29 +1,25 @@
 package com.mrcrayfish.key;
 
-import java.util.Iterator;
-
-import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraft.inventory.InventoryLargeChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S02PacketChat;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityLockable;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.StatCollector;
-import net.minecraft.world.ILockableContainer;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldSavedData;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
+import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -36,18 +32,14 @@ public class KeyEvents
 		{
 			World world = event.world;
 			BlockPos pos = event.pos;
-			
-			if(world.isRemote)
-				return;
-			
+
 			TileEntity tileEntity = world.getTileEntity(pos);
 			if(tileEntity instanceof TileEntityLockable)
 			{
 				TileEntityLockable tileEntityLockable = (TileEntityLockable) tileEntity;
-				
-				EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
-				
+				EntityPlayer player = event.entityPlayer;
 				ItemStack current = player.getCurrentEquippedItem();
+				
 				if(tileEntityLockable.isLocked())
 				{	
 					if(current != null && current.getItem() == KeyItems.item_key)
@@ -55,15 +47,18 @@ public class KeyEvents
 						if(!tileEntityLockable.getLockCode().getLock().equals(current.getDisplayName()))
 						{
 							world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
-							player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "This key does not fit the lock.")), (byte)2));
+							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "This key does not fit the lock.");
 							event.setCanceled(true);
 						}
 					}
 					else
 					{
-						world.playSoundAtEntity(player, "random.wood_click", 1.0F, 1.0F);
-						player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "This block is locked with a key.")), (byte)2));
-						event.setCanceled(true);
+						if(!world.isRemote)
+						{
+							world.playSoundAtEntity(player, "random.wood_click", 1.0F, 1.0F);
+							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "This block is locked with a key.");
+							event.setCanceled(true);
+						}
 					}
 				}
 				else
@@ -72,15 +67,80 @@ public class KeyEvents
 					{
 						if(!current.getDisplayName().equals(StatCollector.translateToLocal(current.getItem().getUnlocalizedName() +".name")))
 						{
-							tileEntityLockable.setLockCode(new LockCode(current.getDisplayName()));
-							world.playSoundAtEntity(player, "random.click", 1.0F, 1.0F);
-							player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.GREEN + "Successfully locked the block with the key: " + EnumChatFormatting.RESET + current.getDisplayName())), (byte)2));
+							if(!world.isRemote)
+							{
+								tileEntityLockable.setLockCode(new LockCode(current.getDisplayName()));
+								world.playSoundAtEntity(player, "random.click", 1.0F, 1.0F);
+								sendSpecialMessage(world, player, EnumChatFormatting.GREEN + "Successfully locked the block with the key: " + EnumChatFormatting.RESET + current.getDisplayName());
+								event.setCanceled(true);
+							}
 						}
 						else
 						{
-							player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "The key needs to be renamed before you can lock this block.")), (byte)2));
+							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "The key needs to be renamed before you can lock this block.");
 						}
-						event.setCanceled(true);
+					}
+				}
+			}
+			else if(world.getBlockState(pos).getBlock() instanceof BlockDoor && world.getBlockState(pos).getBlock() != Blocks.iron_door)
+			{
+				BlockDoor blockDoor = (BlockDoor) world.getBlockState(pos).getBlock();
+				IBlockState state = world.getBlockState(pos);
+				if(((BlockDoor.EnumDoorHalf)state.getValue(BlockDoor.HALF)) == BlockDoor.EnumDoorHalf.UPPER)
+				{
+					pos = pos.down();
+				}
+				
+				LockedDoorData lockedDoorData = LockedDoorData.get(world);
+				LockedDoor lockedDoor = lockedDoorData.getDoor(pos);
+				
+				EntityPlayer player = event.entityPlayer;
+				ItemStack current = player.getCurrentEquippedItem();
+				
+				if(lockedDoor != null)
+				{
+					if(lockedDoor.isLocked())
+					{
+						if(current != null && current.getItem() == KeyItems.item_key)
+						{
+							if(!lockedDoor.getLockCode().getLock().equals(current.getDisplayName()))
+							{
+								world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
+								sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "This key does not fit the lock.");
+								world.markBlockForUpdate(pos);
+								event.setCanceled(true);
+							}
+						}
+						else
+						{
+							world.playSoundAtEntity(player, "random.wood_click", 1.0F, 1.0F);
+							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "This door is locked with a key.");
+							world.markBlockForUpdate(pos);
+							event.setCanceled(true);
+						}
+					}
+					else
+					{
+						if(current != null && current.getItem() == KeyItems.item_key)
+						{
+							if(!current.getDisplayName().equals(StatCollector.translateToLocal(current.getItem().getUnlocalizedName() +".name")))
+							{
+								lockedDoor.setLockCode(new LockCode(current.getDisplayName()));
+								world.playSoundAtEntity(player, "random.click", 1.0F, 1.0F);
+								sendSpecialMessage(world, player, EnumChatFormatting.GREEN + "Successfully locked the door with the key: " + EnumChatFormatting.RESET + current.getDisplayName());
+								lockedDoorData.markDirty();
+							}
+							else
+							{
+								sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "The key needs to be renamed before you can lock this door.");
+								world.markBlockForUpdate(pos);
+							}
+							if(!world.isRemote)event.setCanceled(true);
+						}
+						else
+						{
+							event.setCanceled(false);
+						}
 					}
 				}
 			}
@@ -107,6 +167,34 @@ public class KeyEvents
 					event.setCanceled(true);
 				}
 			}
+		} 
+		else if(event.world.getBlockState(event.pos).getBlock() instanceof BlockDoor && event.world.getBlockState(event.pos).getBlock() != Blocks.iron_door)
+		{
+			LockedDoorData lockedDoorData = LockedDoorData.get(event.world);
+			LockedDoor lockedDoor = lockedDoorData.getDoor(event.pos);
+			ItemStack current = player.getCurrentEquippedItem();
+
+			if(lockedDoor != null && lockedDoor.isLocked())
+			{
+				if(!lockedDoor.isCorrectKey(event.getPlayer()))
+				{
+					player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "You need to have correct key in your inventory to destroy this block.")), (byte)2));
+					event.setCanceled(true);
+				}
+			}
+		}
+	}
+	
+	@SubscribeEvent
+	public void onPlaceBlock(PlaceEvent event)
+	{
+		if(event.world.isRemote)
+			return;
+		
+		if(event.placedBlock.getBlock() instanceof BlockDoor && event.world.getBlockState(event.pos).getBlock() != Blocks.iron_door)
+		{
+			LockedDoorData lockedDoorData = LockedDoorData.get(event.world);
+			lockedDoorData.addDoor(event.pos);
 		}
 	}
 	
@@ -123,5 +211,14 @@ public class KeyEvents
 			}
 		}
 		return false;
+	}
+	
+	public void sendSpecialMessage(World world, EntityPlayer player, String message)
+	{
+		if(world.isRemote)
+			return;
+		
+		EntityPlayerMP playerMp = (EntityPlayerMP) player;
+		playerMp.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(message)), (byte)2));
 	}
 }
