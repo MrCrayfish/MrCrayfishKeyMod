@@ -23,7 +23,7 @@ public class InventoryKeys extends InventoryBasic
 		super("KeyRing", false, getInventorySize());
 		this.player = player;
 		this.keys = keys;
-		if (!hasInventory())
+		if(!hasInventory())
 		{
 			uniqueId = UUID.randomUUID().toString();
 			createInventory();

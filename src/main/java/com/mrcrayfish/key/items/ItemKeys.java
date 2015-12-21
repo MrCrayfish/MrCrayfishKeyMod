@@ -29,7 +29,6 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
 
 public class ItemKeys extends Item 
 {
