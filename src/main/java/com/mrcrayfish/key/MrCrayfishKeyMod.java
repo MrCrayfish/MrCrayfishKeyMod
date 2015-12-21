@@ -1,5 +1,8 @@
 package com.mrcrayfish.key;
 
+import com.mrcrayfish.key.event.KeyEvents;
+import com.mrcrayfish.key.gui.GuiHandler;
+import com.mrcrayfish.key.items.KeyItems;
 import com.mrcrayfish.key.proxy.CommonProxy;
 
 import net.minecraft.creativetab.CreativeTabs;
@@ -12,6 +15,7 @@ import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 @Mod(modid = Reference.MOD_ID, name = Reference.NAME, version = Reference.VERSION)
@@ -38,7 +42,12 @@ public class MrCrayfishKeyMod
 		proxy.init();
 		
 		MinecraftForge.EVENT_BUS.register(new KeyEvents());
+		NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
 		
 		GameRegistry.addRecipe(new ItemStack(KeyItems.item_key), "NNI", 'I', Items.gold_ingot, 'N', Items.gold_nugget);
+		GameRegistry.addRecipe(new ItemStack(KeyItems.item_iron_nugget, 9), "I", 'I', Items.iron_ingot);
+		GameRegistry.addRecipe(new ItemStack(KeyItems.item_key_ring), "NNN", "N N", "NNN", 'N', KeyItems.item_iron_nugget);
+		GameRegistry.addRecipe(new ItemStack(Items.iron_ingot), "NNN", "NNN", "NNN", 'N', KeyItems.item_iron_nugget);
+		
 	}
 }

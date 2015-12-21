@@ -1,5 +1,7 @@
 package com.mrcrayfish.key;
 
+import com.mrcrayfish.key.items.KeyItems;
+
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 

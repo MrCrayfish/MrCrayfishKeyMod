@@ -1,4 +1,4 @@
-package com.mrcrayfish.key;
+package com.mrcrayfish.key.objects;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,11 +1,18 @@
-package com.mrcrayfish.key;
+package com.mrcrayfish.key.event;
+
+import com.mrcrayfish.key.items.KeyItems;
+import com.mrcrayfish.key.objects.LockedDoor;
+import com.mrcrayfish.key.objects.LockedDoorData;
+import com.mrcrayfish.key.util.NBTHelper;
 
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.play.server.S02PacketChat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityLockable;
@@ -16,6 +23,8 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
+import net.minecraftforge.client.event.ModelBakeEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
@@ -48,6 +57,25 @@ public class KeyEvents
 						{
 							world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
 							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "This key does not fit the lock.");
+							event.setCanceled(true);
+						}
+					}
+					else if(current != null && current.getItem() == KeyItems.item_key_ring)
+					{
+						boolean hasPassword = false;
+						NBTTagList passwords = NBTHelper.getTagList(current, "passwords");
+						for(int i = 0; i < passwords.tagCount(); i++)
+						{
+							if(tileEntityLockable.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+							{
+								hasPassword = true;
+								break;
+							}
+						}
+						if(!hasPassword)
+						{
+							world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
+							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "None of the keys fit the lock.");
 							event.setCanceled(true);
 						}
 					}
@@ -111,6 +139,26 @@ public class KeyEvents
 								event.setCanceled(true);
 							}
 						}
+						else if(current != null && current.getItem() == KeyItems.item_key_ring)
+						{
+							boolean hasPassword = false;
+							NBTTagList passwords = NBTHelper.getTagList(current, "passwords");
+							for(int i = 0; i < passwords.tagCount(); i++)
+							{
+								if(lockedDoor.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+								{
+									hasPassword = true;
+									break;
+								}
+							}
+							if(!hasPassword)
+							{
+								world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
+								sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "None of the keys fit the lock.");
+								world.markBlockForUpdate(pos);
+								event.setCanceled(true);
+							}
+						}
 						else
 						{
 							world.playSoundAtEntity(player, "random.wood_click", 1.0F, 1.0F);
@@ -136,6 +184,10 @@ public class KeyEvents
 								world.markBlockForUpdate(pos);
 							}
 							if(!world.isRemote)event.setCanceled(true);
+						}
+						else if(current != null && current.getItem() == KeyItems.item_key_ring)
+						{
+							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "You can only lock a door with a single key.");
 						}
 						else
 						{
@@ -215,6 +267,17 @@ public class KeyEvents
 				if(tileEntityLockable.getLockCode().getLock().equals(stack.getDisplayName()))
 				{
 					return true;
+				}
+			}
+			else if(stack != null && stack.getItem() == KeyItems.item_key_ring)
+			{
+				NBTTagList passwords = NBTHelper.getTagList(stack, "passwords");
+				for(int i = 0; i < passwords.tagCount(); i++)
+				{
+					if(tileEntityLockable.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+					{
+						return true;
+					}
 				}
 			}
 		}

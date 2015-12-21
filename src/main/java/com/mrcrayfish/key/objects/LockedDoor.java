@@ -1,10 +1,14 @@
-package com.mrcrayfish.key;
+package com.mrcrayfish.key.objects;
+
+import com.mrcrayfish.key.items.KeyItems;
+import com.mrcrayfish.key.util.NBTHelper;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityLockable;
 import net.minecraft.util.BlockPos;
@@ -66,11 +70,24 @@ public class LockedDoor {
     {
     	for(ItemStack stack : player.inventory.mainInventory)
 		{
-			if(stack != null && stack.getItem() == KeyItems.item_key)
+    		if(stack == null) continue;
+    		
+			if(stack.getItem() == KeyItems.item_key)
 			{
 				if(getLockCode().getLock().equals(stack.getDisplayName()))
 				{
 					return true;
+				}
+			}
+			else if(stack.getItem() == KeyItems.item_key_ring)
+			{
+				NBTTagList passwords = NBTHelper.getTagList(stack, "passwords");
+				for(int i = 0; i < passwords.tagCount(); i++)
+				{
+					if(getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+					{
+						return true;
+					}
 				}
 			}
 		}

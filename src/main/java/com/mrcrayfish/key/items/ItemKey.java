@@ -1,4 +1,7 @@
-package com.mrcrayfish.key;
+package com.mrcrayfish.key.items;
+
+import com.mrcrayfish.key.objects.LockedDoor;
+import com.mrcrayfish.key.objects.LockedDoorData;
 
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.state.IBlockState;
