@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": {"model": "ckm:key_rack"},
+        "facing=south": { "model": "ckm:key_rack", "y": 180},
+        "facing=east":  { "model": "ckm:key_rack", "y": 90},
+        "facing=west":  { "model": "ckm:key_rack", "y": 270}
+    }
+}

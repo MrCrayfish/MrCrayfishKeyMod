@@ -79,17 +79,21 @@ public class ItemKeys extends Item
 					TileEntityLockable tileEntityLockable = (TileEntityLockable) tileEntity;
 					if(tileEntityLockable.isLocked())
 					{	
-						boolean hasPassword = false;
-						NBTTagList passwords = NBTHelper.getTagList(stack, "passwords");
-						for(int i = 0; i < passwords.tagCount(); i++)
+						boolean hasCorrectKey = false;
+						NBTTagList keys = (NBTTagList) NBTHelper.getCompoundTag(stack, "KeyRing").getTag("Keys");
+						if(keys != null)
 						{
-							if(tileEntityLockable.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+							for(int i = 0; i < keys.tagCount(); i++)
 							{
-								hasPassword = true;
-								break;
+								ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
+								if(tileEntityLockable.getLockCode().getLock().equals(key.getDisplayName()))
+								{
+									hasCorrectKey = true;
+									break;
+								}
 							}
 						}
-						if(hasPassword)
+						if(hasCorrectKey)
 						{
 							tileEntityLockable.setLockCode(LockCode.EMPTY_CODE);
 							playerMp.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.GREEN + "Succesfully unlocked this block.")), (byte)2));
@@ -99,6 +103,7 @@ public class ItemKeys extends Item
 							playerMp.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "You need to have correct key to unlock this block.")), (byte)2));
 						}
 					}
+					return true;
 				}
 				else if(worldIn.getBlockState(pos).getBlock() instanceof BlockDoor && worldIn.getBlockState(pos).getBlock() != Blocks.iron_door)
 				{
@@ -115,17 +120,20 @@ public class ItemKeys extends Item
 					{
 						if(lockedDoor.isLocked())
 						{
-							boolean hasPassword = false;
-							NBTTagList passwords = NBTHelper.getTagList(stack, "passwords");
-							for(int i = 0; i < passwords.tagCount(); i++)
+							boolean hasCorrectKey = false;
+							NBTTagList keys = (NBTTagList) NBTHelper.getCompoundTag(stack, "KeyRing").getTag("Keys");
+							if(keys != null)
 							{
-								if(lockedDoor.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+								for(int i = 0; i < keys.tagCount(); i++)
 								{
-									hasPassword = true;
-									break;
+									ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
+									if(lockedDoor.getLockCode().getLock().equals(key.getDisplayName()))
+									{
+										hasCorrectKey = true;
+									}
 								}
 							}
-							if(hasPassword)
+							if(hasCorrectKey)
 							{
 								lockedDoor.setLockCode(LockCode.EMPTY_CODE);
 								playerMp.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.GREEN + "Succesfully unlocked this block.")), (byte)2));
@@ -137,10 +145,11 @@ public class ItemKeys extends Item
 							}
 						}
 					}
+					return true;
 				}
 			}
 		}
-		return true;
+		return false;
 	}
 	
 	@Override

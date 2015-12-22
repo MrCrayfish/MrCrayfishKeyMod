@@ -74,12 +74,16 @@ public class LockedDoor {
 			}
 			else if(stack.getItem() == KeyItems.item_key_ring)
 			{
-				NBTTagList passwords = NBTHelper.getTagList(stack, "passwords");
-				for(int i = 0; i < passwords.tagCount(); i++)
+				NBTTagList keys = (NBTTagList) NBTHelper.getCompoundTag(stack, "KeyRing").getTag("Keys");
+				if(keys != null)
 				{
-					if(getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+					for(int i = 0; i < keys.tagCount(); i++)
 					{
-						return true;
+						ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
+						if(getLockCode().getLock().equals(key.getDisplayName()))
+						{
+							return true;
+						}
 					}
 				}
 			}

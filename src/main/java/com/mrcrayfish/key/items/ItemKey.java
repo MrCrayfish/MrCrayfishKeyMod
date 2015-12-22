@@ -5,6 +5,7 @@ import com.mrcrayfish.key.objects.LockedDoorData;
 
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -19,9 +20,16 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ItemKey extends Item 
 {
+	public ItemKey() 
+	{
+		setMaxStackSize(1);
+	}
+	
 	@Override
 	public boolean onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ) 
 	{
@@ -79,4 +87,34 @@ public class ItemKey extends Item
 		}
 		return true;
 	}
+	
+	/*@Override
+	@SideOnly(Side.CLIENT)
+	public int getMetadata(ItemStack stack) 
+	{
+		ItemStack inUseStack = Minecraft.getMinecraft().thePlayer.getItemInUse();
+		if(inUseStack != null)
+		{
+			if(inUseStack.getItem() == this)
+			{
+				return 1;
+			}
+		}
+		return 0;
+	}
+	
+	@Override
+    public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn)
+    {
+        playerIn.setItemInUse(itemStackIn, 72000);
+        return itemStackIn;
+    }
+	
+	@Override
+	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityPlayer playerIn) 
+	{
+		System.out.println(Minecraft.getMinecraft().objectMouseOver.entityHit);
+		//playerIn.attackTargetEntityWithCurrentItem(null);
+		return super.onItemUseFinish(stack, worldIn, playerIn);
+	}*/
 }

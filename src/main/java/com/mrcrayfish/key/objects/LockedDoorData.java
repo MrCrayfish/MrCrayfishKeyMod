@@ -41,6 +41,18 @@ public class LockedDoorData extends WorldSavedData {
 		}
 		return null;
 	}
+	
+	public void removeDoor(BlockPos pos)
+	{
+		for(LockedDoor door : lockedDoors)
+		{
+			if(door.getPos().equals(pos))
+			{
+				lockedDoors.remove(door);
+				return;
+			}
+		}
+	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) 

@@ -1,7 +1,10 @@
 itemGroup.tabKey=MrCrayfish's Key Mod
+
 item.item_key.name=Key
 item.item_key_ring_0.name=Key Ring
 item.item_key_ring_1.name=Key Ring
 item.item_key_ring_2.name=Key Ring
 item.item_key_ring_3.name=Key Ring
 item.item_iron_nugget.name=Iron Nugget
+
+tile.block_key_rack.name=Key Rack

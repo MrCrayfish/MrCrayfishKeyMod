@@ -1,0 +1,23 @@
+{
+	"parent": "ckm:block/key_rack",
+	"textures": {
+		"layer0": "ckm:items/block_key_rack"
+	},
+	"display": {
+		"thirdperson": {
+			"rotation": [ 0, 90, 0 ],
+			"translation": [ 2, 1, -2 ],
+			"scale": [ 0.55, 0.55, 0.55 ]
+		},
+		"firstperson": {
+			"rotation": [ -25, -135, 0 ],
+			"translation": [ 0, 3, -2 ],
+			"scale": [ 1.7, 1.7, 1.7 ]
+		},
+		"gui": {
+			"rotation": [ -20, 180, -10 ],
+			"translation": [ 0, 2, -7 ],
+			"scale": [ 2, 2, 2 ]
+		}
+	}
+}

@@ -5,7 +5,9 @@ import com.mrcrayfish.key.objects.LockedDoor;
 import com.mrcrayfish.key.objects.LockedDoorData;
 import com.mrcrayfish.key.util.NBTHelper;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockDoor.EnumDoorHalf;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -21,9 +23,12 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
+import net.minecraftforge.event.world.BlockEvent.NeighborNotifyEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -58,17 +63,21 @@ public class KeyEvents
 					}
 					else if(current != null && current.getItem() == KeyItems.item_key_ring)
 					{
-						boolean hasPassword = false;
-						NBTTagList passwords = NBTHelper.getTagList(current, "passwords");
-						for(int i = 0; i < passwords.tagCount(); i++)
+						boolean hasCorrectKey = false;
+						NBTTagList keys = (NBTTagList) NBTHelper.getCompoundTag(current, "KeyRing").getTag("Keys");
+						if(keys != null)
 						{
-							if(tileEntityLockable.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+							for(int i = 0; i < keys.tagCount(); i++)
 							{
-								hasPassword = true;
-								break;
+								ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
+								if(tileEntityLockable.getLockCode().getLock().equals(key.getDisplayName()))
+								{
+									hasCorrectKey = true;
+									break;
+								}
 							}
 						}
-						if(!hasPassword)
+						if(!hasCorrectKey)
 						{
 							world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
 							sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "None of the keys fit the lock.");
@@ -137,17 +146,21 @@ public class KeyEvents
 						}
 						else if(current != null && current.getItem() == KeyItems.item_key_ring)
 						{
-							boolean hasPassword = false;
-							NBTTagList passwords = NBTHelper.getTagList(current, "passwords");
-							for(int i = 0; i < passwords.tagCount(); i++)
+							boolean hasCorrectKey = false;
+							NBTTagList keys = (NBTTagList) NBTHelper.getCompoundTag(current, "KeyRing").getTag("Keys");
+							if(keys != null)
 							{
-								if(lockedDoor.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+								for(int i = 0; i < keys.tagCount(); i++)
 								{
-									hasPassword = true;
-									break;
+									ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
+									if(lockedDoor.getLockCode().getLock().equals(key.getDisplayName()))
+									{
+										hasCorrectKey = true;
+										break;
+									}
 								}
 							}
-							if(!hasPassword)
+							if(!hasCorrectKey)
 							{
 								world.playSoundAtEntity(player, "fire.ignite", 1.0F, 1.0F);
 								sendSpecialMessage(world, player, EnumChatFormatting.YELLOW + "None of the keys fit the lock.");
@@ -237,6 +250,55 @@ public class KeyEvents
 					player.playerNetServerHandler.sendPacket(new S02PacketChat((new ChatComponentText(EnumChatFormatting.YELLOW + "You need to have correct key in your inventory to destroy this block.")), (byte)2));
 					event.setCanceled(true);
 				}
+				else
+				{
+					lockedDoorData.removeDoor(pos);
+				}
+			}
+		}
+		else
+		{
+			tileEntity = event.world.getTileEntity(pos.up());
+			if(tileEntity instanceof TileEntityLockable)
+			{
+				TileEntityLockable tileEntityLockable = (TileEntityLockable) tileEntity;
+				if(tileEntityLockable.isLocked())
+				{
+					if(!hasRequiredKey(player, tileEntityLockable))
+					{
+						if(!tileEntity.getBlockType().canPlaceBlockAt(world, pos.up()))
+						{
+							event.setCanceled(true);
+						}
+					}
+				}
+			}
+			
+			IBlockState state = world.getBlockState(pos.up());
+			Block block = state.getBlock();
+			if(block instanceof BlockDoor && world.getBlockState(pos).getBlock() != Blocks.iron_door)
+			{
+				if(state.getValue(BlockDoor.HALF) == BlockDoor.EnumDoorHalf.UPPER)
+				{
+					pos = pos.down();
+				}
+				
+				LockedDoorData lockedDoorData = LockedDoorData.get(world);
+				LockedDoor lockedDoor = lockedDoorData.getDoor(pos.up());
+				if(lockedDoor != null)
+				{
+					if(!lockedDoor.isCorrectKey(player))
+					{
+						if(!block.canPlaceBlockAt(world, pos.up()))
+						{
+							event.setCanceled(true);
+						}
+					}
+					else
+					{
+						lockedDoorData.removeDoor(pos.up());
+					}
+				}
 			}
 		}
 	}
@@ -254,6 +316,85 @@ public class KeyEvents
 		}
 	}
 	
+	@SubscribeEvent
+	public void onNeighbourChange(NeighborNotifyEvent event)
+	{
+		System.out.println(event.world.getBlockState(event.pos).getBlock());
+		if(hasLockedBlockAround(event.world, event.pos))
+		{
+			event.setCanceled(true);
+		}
+	}
+	
+	@SubscribeEvent
+	public void onRenderText(RenderGameOverlayEvent.Text event)
+	{
+		event.left.add("Poo");
+	}
+	
+	public boolean hasLockedBlockAround(World world, BlockPos pos)
+	{
+		BlockPos checkPos;
+		LockedDoorData lockedDoorData = LockedDoorData.get(world);
+		for(int x = pos.getX() - 1; x <= pos.getX() + 1; x++)
+		{
+			for(int y = pos.getY() - 1; y <= pos.getY() + 1; y++)
+			{
+				for(int z = pos.getZ() - 1; z <= pos.getZ() + 1; z++)
+				{
+					checkPos = new BlockPos(x, y, z);
+					if(world.getTileEntity(checkPos) instanceof TileEntityLockable)
+					{
+						TileEntityLockable lockable = (TileEntityLockable) world.getTileEntity(checkPos);
+						if(lockable.isLocked())
+						{
+							if(hasPower(world, checkPos))
+							{
+								return true;
+							}
+						}
+					}
+					if(world.getBlockState(checkPos).getBlock() instanceof BlockDoor)
+					{
+						IBlockState state = world.getBlockState(checkPos);
+						if(state.getValue(BlockDoor.HALF) == EnumDoorHalf.UPPER)
+						{
+							checkPos = checkPos.down();
+						}
+						if(lockedDoorData.getDoor(checkPos) != null)
+						{
+							if(hasPower(world, checkPos))
+							{
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean hasPower(World world, BlockPos pos)
+	{
+		BlockPos checkPos;
+		for(int x = pos.getX() - 1; x <= pos.getX() + 1; x++)
+		{
+			for(int y = pos.getY() - 1; y <= pos.getY() + 1; y++)
+			{
+				for(int z = pos.getZ() - 1; z <= pos.getZ() + 1; z++)
+				{
+					checkPos = new BlockPos(x, y, z);
+					if(world.isBlockPowered(checkPos))
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
 	public boolean hasRequiredKey(EntityPlayer player, TileEntityLockable tileEntityLockable)
 	{
 		for(ItemStack stack : player.inventory.mainInventory)
@@ -267,12 +408,16 @@ public class KeyEvents
 			}
 			else if(stack != null && stack.getItem() == KeyItems.item_key_ring)
 			{
-				NBTTagList passwords = NBTHelper.getTagList(stack, "passwords");
-				for(int i = 0; i < passwords.tagCount(); i++)
+				NBTTagList keys = (NBTTagList) NBTHelper.getCompoundTag(stack, "KeyRing").getTag("Keys");
+				if(keys != null)
 				{
-					if(tileEntityLockable.getLockCode().getLock().equals(passwords.getStringTagAt(i)))
+					for(int i = 0; i < keys.tagCount(); i++)
 					{
-						return true;
+						ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
+						if(tileEntityLockable.getLockCode().getLock().equals(key.getDisplayName()))
+						{
+							return true;
+						}
 					}
 				}
 			}
