@@ -49,6 +49,6 @@ public class KeyItems {
 			variants[i] = Reference.MOD_ID + ":" + item.getUnlocalizedName().substring(5) + "_" + i;
 			Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(item, i, new ModelResourceLocation(variants[i], "inventory"));
 		}
-		ModelBakery.addVariantName(item_key_ring, variants);
+		ModelBakery.addVariantName(item, variants);
 	}
 }

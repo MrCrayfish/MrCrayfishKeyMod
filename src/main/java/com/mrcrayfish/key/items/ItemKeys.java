@@ -32,8 +32,6 @@ import net.minecraft.world.World;
 
 public class ItemKeys extends Item 
 {
-	private final ModelResourceLocation none = new ModelResourceLocation("cfm:models/item/item_keys_none");
-	
 	public ItemKeys() 
 	{
 		this.setMaxStackSize(1);

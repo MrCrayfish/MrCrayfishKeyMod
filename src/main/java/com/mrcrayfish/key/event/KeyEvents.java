@@ -23,10 +23,9 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
+import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.event.world.BlockEvent.NeighborNotifyEvent;
 import net.minecraftforge.event.world.BlockEvent.PlaceEvent;
@@ -72,6 +71,7 @@ public class KeyEvents
 								ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
 								if(tileEntityLockable.getLockCode().getLock().equals(key.getDisplayName()))
 								{
+									current.setStackDisplayName(key.getDisplayName());
 									hasCorrectKey = true;
 									break;
 								}
@@ -209,6 +209,19 @@ public class KeyEvents
 	}
 	
 	@SubscribeEvent
+	public void onOpenContainer(PlayerOpenContainerEvent event)
+	{
+		ItemStack current = event.entityPlayer.getCurrentEquippedItem();
+		if(current != null)
+		{
+			if(current.getItem() == KeyItems.item_key_ring) 
+			{
+				current.clearCustomName();
+			}
+		}
+	}
+	
+	@SubscribeEvent
 	public void onBreakBlock(BreakEvent event)
 	{
 		if(event.world.isRemote)
@@ -319,17 +332,10 @@ public class KeyEvents
 	@SubscribeEvent
 	public void onNeighbourChange(NeighborNotifyEvent event)
 	{
-		System.out.println(event.world.getBlockState(event.pos).getBlock());
 		if(hasLockedBlockAround(event.world, event.pos))
 		{
 			event.setCanceled(true);
 		}
-	}
-	
-	@SubscribeEvent
-	public void onRenderText(RenderGameOverlayEvent.Text event)
-	{
-		event.left.add("Poo");
 	}
 	
 	public boolean hasLockedBlockAround(World world, BlockPos pos)

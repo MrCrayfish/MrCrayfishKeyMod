@@ -15,6 +15,12 @@ public class KeyTab extends CreativeTabs
 	@Override
 	public Item getTabIconItem() 
 	{
-		return KeyItems.item_key;
+		return KeyItems.item_key_ring;
+	}
+	
+	@Override
+	public int getIconItemDamage() 
+	{
+		return 3;
 	}
 }
