@@ -1,4 +1,4 @@
-package com.mrcrayfish.key.objects;
+package com.mrcrayfish.key.lock;
 
 import com.mrcrayfish.key.items.KeyItems;
 import com.mrcrayfish.key.util.NBTHelper;
@@ -10,17 +10,17 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.LockCode;
 
-public class LockedDoor {
+public class LockData {
 
 	private BlockPos pos;
 	private LockCode code;
 
-    public LockedDoor()
+    public LockData()
     {
         this.code = LockCode.EMPTY_CODE;
     }
     
-    public LockedDoor(BlockPos pos)
+    public LockData(BlockPos pos)
     {
     	this.pos = pos;
         this.code = LockCode.EMPTY_CODE;
@@ -57,38 +57,6 @@ public class LockedDoor {
     public void setLockCode(LockCode code)
     {
         this.code = code;
-    }
-    
-    public boolean isCorrectKey(EntityPlayer player)
-    {
-    	for(ItemStack stack : player.inventory.mainInventory)
-		{
-    		if(stack == null) continue;
-    		
-			if(stack.getItem() == KeyItems.item_key)
-			{
-				if(getLockCode().getLock().equals(stack.getDisplayName()))
-				{
-					return true;
-				}
-			}
-			else if(stack.getItem() == KeyItems.item_key_ring)
-			{
-				NBTTagList keys = (NBTTagList) NBTHelper.getCompoundTag(stack, "KeyRing").getTag("Keys");
-				if(keys != null)
-				{
-					for(int i = 0; i < keys.tagCount(); i++)
-					{
-						ItemStack key = ItemStack.loadItemStackFromNBT(keys.getCompoundTagAt(i));
-						if(getLockCode().getLock().equals(key.getDisplayName()))
-						{
-							return true;
-						}
-					}
-				}
-			}
-		}
-		return false;
     }
     
     public BlockPos getPos()

@@ -5,8 +5,8 @@ import java.util.List;
 import com.mrcrayfish.key.MrCrayfishKeyMod;
 import com.mrcrayfish.key.gui.GuiKeys;
 import com.mrcrayfish.key.gui.InventoryKeys;
-import com.mrcrayfish.key.objects.LockedDoor;
-import com.mrcrayfish.key.objects.LockedDoorData;
+import com.mrcrayfish.key.lock.LockData;
+import com.mrcrayfish.key.lock.WorldLockData;
 import com.mrcrayfish.key.util.NBTHelper;
 
 import net.minecraft.block.BlockDoor;
@@ -111,8 +111,8 @@ public class ItemKeys extends Item
 						pos = pos.down();
 					}
 					
-					LockedDoorData lockedDoorData = LockedDoorData.get(worldIn);
-					LockedDoor lockedDoor = lockedDoorData.getDoor(pos);
+					WorldLockData lockedDoorData = WorldLockData.get(worldIn);
+					LockData lockedDoor = lockedDoorData.getLock(pos);
 					if(lockedDoor != null)
 					{
 						if(lockedDoor.isLocked())

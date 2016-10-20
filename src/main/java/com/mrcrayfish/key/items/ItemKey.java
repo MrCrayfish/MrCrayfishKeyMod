@@ -1,7 +1,7 @@
 package com.mrcrayfish.key.items;
 
-import com.mrcrayfish.key.objects.LockedDoor;
-import com.mrcrayfish.key.objects.LockedDoorData;
+import com.mrcrayfish.key.lock.LockData;
+import com.mrcrayfish.key.lock.WorldLockData;
 
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.state.IBlockState;
@@ -61,8 +61,8 @@ public class ItemKey extends Item
 						pos = pos.down();
 					}
 					
-					LockedDoorData lockedDoorData = LockedDoorData.get(worldIn);
-					LockedDoor lockedDoor = lockedDoorData.getDoor(pos);
+					WorldLockData lockedDoorData = WorldLockData.get(worldIn);
+					LockData lockedDoor = lockedDoorData.getLock(pos);
 					if(lockedDoor != null)
 					{
 						if(lockedDoor.isLocked())

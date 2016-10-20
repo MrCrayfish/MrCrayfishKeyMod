@@ -4,6 +4,7 @@ import com.mrcrayfish.key.blocks.KeyBlocks;
 import com.mrcrayfish.key.event.KeyEvents;
 import com.mrcrayfish.key.gui.GuiHandler;
 import com.mrcrayfish.key.items.KeyItems;
+import com.mrcrayfish.key.lock.LockManager;
 import com.mrcrayfish.key.proxy.CommonProxy;
 import com.mrcrayfish.key.tileentity.TileEntityKeyRack;
 
@@ -42,6 +43,8 @@ public class MrCrayfishKeyMod
 		/** Initialize and Register Items */
 		KeyItems.register();
 		KeyItems.registerItems();
+		
+		LockManager.registerTypes();
 	}
 	
 	@EventHandler
